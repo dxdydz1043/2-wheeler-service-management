@@ -1,0 +1,27 @@
+Project problem statement:
+
+A two-wheeler service shop wants to develop a system to regulate the maintenance of their day-to-day services. Every incoming vehicle must be assigned a job card. The card should have various details such as registration number, owner details, engine number, type of service needed, and expected delivery date. Further information to be filled in the job card varies as per the service type (Ex: maintenance, oil service, brake condition etc.). On completing the vehicle service, the job card has to be updated, and the system has to alert the owner automatically. The job's priority is fixed based on specific criteria like delivery date, and a service mechanic gets the list of jobs for the day.
+
+Requirements:
+
+As a shop owner,
+
+I should be able to login through my username ad password.
+
+I should be able to see the details of all the customers , services and workers.
+
+I should be having access to assign the works to respective workers.
+
+As a customer,
+
+I should be able to register myself by giving details about e and my two-wheeler.
+
+I should be able to book the available services for my two-wheeler through my login.
+
+I should be getting alert after my booked service is accomplished.
+
+As a worker,
+
+I should be able to login through my id and password.
+
+I should be able to see the works assigned to me.
