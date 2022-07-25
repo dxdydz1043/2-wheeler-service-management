@@ -105,14 +105,18 @@ def clicksignup():
     
 global clickcustlog
 def clickcustlog():
-    custemail=Entry(root)
-    label1=Label(root,text="Email/Mobile number")
+    top5=Toplevel()
+    top5.geometry("1920x1080")
+    custemail=Entry(top5)
+    label1=Label(top5,text="Email/Mobile number")
     label1.pack()
     custemail.pack()
-    custpass=Entry(root)
-    label2=Label(root,text="password")
+    custpass=Entry(top5)
+    label2=Label(top5,text="password")
     label2.pack()
     custpass.pack()
+    logbutt=Button(top5,text="login")
+    logbutt.pack()
 
 
 
