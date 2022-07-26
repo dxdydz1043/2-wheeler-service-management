@@ -33,4 +33,4 @@ class LinkedQueue:
         while p._next is not None:
             print(p._item)
         else:
-            return 
+            return None
