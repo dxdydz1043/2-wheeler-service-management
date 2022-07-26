@@ -34,16 +34,3 @@ class LinkedQueue:
             print(p._item)
         else:
             return None
-
-'''l=LinkedQueue()
-print(l)
-l.enqueue(2)
-l.enqueue(99)
-l.enqueue(80)
-l.enqueue(18)
-l.enqueue(78)
-print(l)
-print(l.dequeue())
-print(l)
-print(l.dequeue())
-print(l)'''
