@@ -55,3 +55,9 @@ class LinkedList:
                 return p._next._item
             p=p._next
         return None
+    def __iter__(self):
+        pos=self._head
+        while pos._next!=None:
+            yield pos._next._item
+            pos=pos._next
+        return None
