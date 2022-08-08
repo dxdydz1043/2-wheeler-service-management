@@ -5,6 +5,7 @@ from llproj import LinkedList
 from lqproj import LinkedQueue
 from tkinter import messagebox
 import json   
+from concurrent.futures.process import _python_exit
 class Customer():
 
     __slots__=['name','mail','phone','pwd']
@@ -41,18 +42,34 @@ class Customer():
     def getdetails(self):
         details=self.custdetails()
         info=''
-        for i in details:
-            info+=str(i)+'\n'
+        title=["Name","Mail","Phone"]
+        ind=1
+        for i in details[:-1]:
+            info+=str(title[ind])+str(i)+'\n'
         return info
-llcust=LinkedList()
-'''c=Customer('harish','@gmail.com',98456,'123@abc')
-print(c)
-c.changemail('rmharish2017@gmail.com')
-print(c)
-print(c.mail)
-a=c.login_cred()
-print(a)
-print(c.getdetails())'''
+    
+    def createdict(self):
+        datadict= {'name':self.name,'mail':self.mail,'phone':self.phone,'pwd':self.pwd}
+        return datadict
+
+    def writefile(self,file,datadict):
+        with open(file,'r') as data:
+            cust_list=json.load(data)
+            cust_list.append(datadict)
+        with open(file,'w') as data:
+            json.dump(cust_list,data)
+    
+    def updatefile(self,file,phone,datadict):
+
+        with open(file,'r+') as data:
+            cust_list=json.load(data)
+        for i in cust_list:
+            if i.get('phone')==phone:
+                cust_list.remove(i)
+                cust_list.append(datadict)
+                break
+        with open(file,'w') as data:
+            json.dump(cust_list,data)
 class Admin:
     def __init__(self):
         self.custlist=LinkedList()
@@ -170,13 +187,10 @@ def custsignup(frame):
 
 def signin_next(frame):
     
-    with open('data.json','r') as data:
-        cust_list=json.load(data)
-        dict1={'name':custname.get(),'mail':custemail.get(),'phone':custphone.get(),'pwd':custpass.get()}
-        cust_list.append(dict1)
-    with open('data.json','w') as data:
-        json.dump(cust_list,data)
-    
+    cust=Customer(custname.get(),custemail.get(),custphone.get(),custpass.get())
+    dict1=cust.createdict()
+    cust.writefile('data.json',dict1)
+    print(dict1)
     custlogin(frame)
 
 def custlogin(frame):
@@ -201,36 +215,18 @@ def custlogin(frame):
     logbutt.pack()
     backbutt4=Button(frame,text="back",command=lambda:custsignup(frame))
     backbutt4.pack()
-
 def login_check(frame):
 
     with open('data.json','r') as file:
         cust_data=json.load(file)
-
-        global customer_Data
+        global phone
+        phone=custcred.get()
         for data in cust_data:
             if str(data.get('phone')) == custcred.get():
                 if data.get('pwd') == custpwd.get():
-                    customer_Data=data
-                    login_next(frame)
+                    login_next(frame,phone)
 
-def login_next(frame):
-
-    frame.destroy()
-
-    frame=Frame(rt)
-    frame.pack()
-
-    edits=Button(frame,text='Edit profile',command=lambda:view_editpage(frame))
-    edits.pack()
-
-    book=Button(frame,text='Book a service')
-    book.pack()
-
-    back=Button(frame,text='back',command=lambda:custlogin(frame))
-    back.pack()
-
-def view_editpage(frame):
+def view_editpage(frame,phone):
 
     frame.destroy()
     frame=Frame(rt)
@@ -238,50 +234,132 @@ def view_editpage(frame):
 
     global newname
     global newemail
-    global newphone
     global newpass
 
     newname=Entry(frame)
-    label1=Label(frame,text="First name")
+    label1=Label(frame,text="Name")
     label1.pack()
     newname.pack()
     newemail=Entry(frame)
     label2=Label(frame,text="Email")
     label2.pack()
     newemail.pack()
-    newphone=Entry(frame)
-    label3=Label(frame,text="Mobile number")
-    label3.pack()
-    newphone.pack()
     newpass=Entry(frame)
     label4=Label(frame,text="Set password")
     label4.pack()
     newpass.pack()
 
-    submit=Button(frame,text='submit',command=lambda:update_data(frame))
+    submit=Button(frame,text='submit',command=lambda:update_data(frame,phone))
     submit.pack()
 
-    back=Button(frame,text='back',command=lambda:login_next(frame))
+    back=Button(frame,text='back',command=lambda:login_next(frame,phone))
     back.pack()
 
-def update_data(frame):
-    changed_data=[newname.get(),newemail.get(),newphone.get(),newpass.get()]
-    print(changed_data)
-    index=0
-    s={'name':None,'email':None,'phone':None,'pwd':None}
-    for i in s:
-        s[i]=changed_data[index]
-        index+=1
-    with open('data.json','r+') as file:
-        cust_data=json.load(file)
-        a=cust_data.index(customer_Data)
-        cust_data.remove(customer_Data)
-        cust_data.insert(a,s)
-        file.seek(0)
-        json.dump(cust_data, file)
+def update_data(frame,phone):
 
-        
-    login_next(frame)
+    newcust=Customer(newname.get(),newemail.get(),phone,newpass.get())
+    dict1=newcust.createdict()
+
+    newcust.updatefile('data.json',phone,dict1)
+
+    login_next(frame,phone)
+
+def view_servicepage(frame):
+
+    frame.destroy()
+    frame=Frame(rt)
+    frame.pack()
+
+    button1=Button(frame,text='periodic maintenace')
+    button2=Button(frame,text='running repairs')
+    button3=Button(frame,text='accidental repairs')
+    button4=Button(frame,text='inspection')
+    button5=Button(frame,text='batteries & tyres')
+    button1.pack()
+    button2.pack()
+    button2.pack()
+    button3.pack()
+    button4.pack()
+    button5.pack()
+    
+    back=Button(frame,text='back',command=lambda:login_next(frame,phone))
+    back.pack()
+
+def login_next(frame,phone):
+
+    frame.destroy()
+
+    frame=Frame(rt)
+    frame.pack()
+
+    edits=Button(frame,text='Edit profile',command=lambda:view_editpage(frame,phone))
+    edits.pack()
+
+    book=Button(frame,text='Book a service',command=lambda:view_servicepage(frame))
+    book.pack()
+
+    back=Button(frame,text='back',command=lambda:custlogin(frame))
+    back.pack()
+
+
+def view_editpage(frame,phone):
+
+    frame.destroy()
+    frame=Frame(rt)
+    frame.pack()
+
+    global newname
+    global newemail
+    global newpass
+
+    newname=Entry(frame)
+    label1=Label(frame,text="Name")
+    label1.pack()
+    newname.pack()
+    newemail=Entry(frame)
+    label2=Label(frame,text="Email")
+    label2.pack()
+    newemail.pack()
+    newpass=Entry(frame)
+    label4=Label(frame,text="Set password")
+    label4.pack()
+    newpass.pack()
+
+    submit=Button(frame,text='submit',command=lambda:update_data(frame,phone))
+    submit.pack()
+
+    back=Button(frame,text='back',command=lambda:login_next(frame,phone))
+    back.pack()
+
+def update_data(frame,phone):
+
+    newcust=Customer(newname.get(),newemail.get(),phone,newpass.get())
+    dict1=newcust.createdict()
+
+    newcust.updatefile('data.json',phone,dict1)
+
+    login_next(frame,phone)
+
+def view_servicepage(frame):
+
+    frame.destroy()
+    frame=Frame(rt)
+    frame.pack()
+
+    button1=Button(frame,text='periodic maintenace')
+    button2=Button(frame,text='running repairs')
+    button3=Button(frame,text='accidental repairs')
+    button4=Button(frame,text='inspection')
+    button5=Button(frame,text='batteries & tyres')
+    button1.pack()
+    button2.pack()
+    button2.pack()
+    button3.pack()
+    button4.pack()
+    button5.pack()
+    
+    back=Button(frame,text='back',command=lambda:login_next(frame,phone))
+    back.pack()
 
 def frame(r):
     def bk():
@@ -313,21 +391,28 @@ def custd(f):
         with open('data.json','r') as file:
             cust_data=json.load(file)
             for i in cust_data:
-                if c11.get()==i['phone']:
-                    cl=Label(c,text=represent(i)).grid(row=5,column=1)
+                #if c11.get()==i['phone']:
+                    messagebox.showinfo("Customer:"+str(i["phone"]),represent(i))
+                    #cl=Label(c,text=represent(i)).grid(row=5,column=1)
+    def info(cust_data,j):
+        messagebox.showinfo("Customer:"+str(cust_data[j]["name"]),represent(cust_data[j]))
+    def show():
+        with open('data.json','r') as file:
+            cust_data=json.load(file)
+            indexes=5
+            for indi in range(len(cust_data)):
+                print(indi)
+                b=Label(c,text=represent(cust_data[indi]),fg="white",bg="black").grid(row=indexes,column=1)  
+                indexes+=1 
     def bk2():
         frame(c)
     f.destroy()
     c=Tk()
     c.title("Customer")
     c.geometry("1500x1080")
-    ck=Label(c,text="Enter the customer id")
-    ck.grid(row=1,column=0)
-    c11=Entry(c)
-    c11.grid(row=1,column=1)
-    search_btn=Button(c,text="SEARCH",command=searchc).grid(row=3,column=1)
-    back=Button(c,text="Back",command=bk2).grid(row=6,column=1)
-    exit=Button(c,text="EXIT",command=c.destroy).grid(row=7,column=1)   
+    search_btn=Button(c,text="SHOW REGISTERED CUSTOMERS",command=show).grid(row=1,column=1)
+    back=Button(c,text="Back",command=bk2).grid(row=21,column=1)
+    exit=Button(c,text="EXIT",command=c.destroy).grid(row=22,column=1)   
 def work(f):
     def bk1():
         frame(w)
@@ -376,7 +461,7 @@ def workerlogin(p):
         elif llbl11.get()=="w5" and llbl21.get()=="w5":
             wpage(root1,w5)    
         else:
-            l=Label(root,text="Invalid Login or password")
+            l=Label(root1,text="Invalid Login or password")
             l.grid(row=2,column=1)
     if p is not None:
         p.destroy()
@@ -417,7 +502,6 @@ def screen1(p=None):
     lbl21.grid(row=1,column=1)
     l=[lbl11,lbl21]
     sub_btn=Button(root,text="PROCEED",command=submit).grid(row=6,column=1)
-
     exit_btn=Button(root,text="EXIT",command=root.destroy).grid(row=8,column=1)
 
 
